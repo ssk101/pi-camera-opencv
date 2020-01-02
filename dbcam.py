@@ -58,7 +58,7 @@ def is_day():
   return now < datetime_time(17, 00) and now >= datetime_time(9, 00)
 
 def is_night():
-  return
+  if not NIGHT_ENABLED return
   now = datetime.now().time()
   return now >= datetime_time(17, 00) or now < datetime_time(9, 00)
 
