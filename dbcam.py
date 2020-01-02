@@ -25,6 +25,7 @@ UPLOAD_FORMAT = 'mp4'
 DATE_FORMAT = '%Y-%m-%d'
 TIME_FORMAT = '%H.%M.%S'
 TIME_STATE = 'day'
+NIGHT_ENABLED = false
 ACCESS_TOKEN = os.environ.get('DB_ACCESS_TOKEN')
 CAMERA = PiCamera()
 
@@ -94,26 +95,20 @@ def init_camera(delay=0):
   }
 
   night = {
-    'framerate': FRAMERATE,
-    'shutter_speed': 0,
-    'exposure_mode': 'auto',
-    'iso': 0,
+    'framerate': Fraction(1, 6),
+    'shutter_speed': 6000000,
+    'exposure_mode': 'off',
+    'iso': 800,
   }
-  # night = {
-  #   'framerate': Fraction(1, 6),
-  #   'shutter_speed': 6000000,
-  #   'exposure_mode': 'off',
-  #   'iso': 800,
-  # }
 
-  if is_day():
-    write("Assigning daytime settings.")
-    settings = {**settings, **day}
-    TIME_STATE = 'day'
-  elif is_night():
+  if is_night() and NIGHT_ENABLED:
     write("Assigning nighttime settings.")
     settings = {**settings, **night}
     TIME_STATE = 'night'
+  else:
+    write("Assigning daytime settings.")
+    settings = {**settings, **day}
+    TIME_STATE = 'day'
 
   for k, v in settings.items():
     setattr(CAMERA, k, v)
