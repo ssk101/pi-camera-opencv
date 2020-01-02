@@ -122,7 +122,7 @@ def outputs():
 
 def upload(stream_file):
   converted_file = f"{stream_file}.{UPLOAD_FORMAT}"
-  up_file = f"/hc_{today()}/{now()}.{UPLOAD_FORMAT}"
+  up_file = f"/dbcam_{today()}/{now()}.{UPLOAD_FORMAT}"
 
   write(f"Converting {stream_file} to {UPLOAD_FORMAT}...")
 
