@@ -69,7 +69,8 @@ def is_day():
   return now < datetime_time(17, 00) and now >= datetime_time(9, 00)
 
 def is_night():
-  return
+  if not NIGHT_ENABLED:
+    return
   now = datetime.now().time()
   return now >= datetime_time(17, 00) or now < datetime_time(9, 00)
 
@@ -114,7 +115,7 @@ def init_camera(delay=0):
     'iso': 800,
   }
 
-  if is_night() and NIGHT_ENABLED:
+  if is_night():
     write("Assigning nighttime settings.")
     settings = {**settings, **night}
     TIME_STATE = 'night'
