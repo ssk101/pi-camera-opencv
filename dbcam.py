@@ -135,6 +135,7 @@ def outputs():
 
 def convert(stream_file):
   write(f"Converting {stream_file} to {UPLOAD_FORMAT}...")
+  timestamp = f"{today()}_{now()}"
 
   try:
     p = subprocess.Popen([
@@ -145,7 +146,7 @@ def convert(stream_file):
       '-framerate', str(FRAMERATE),
       '-probesize', str(PROBE_SIZE),
       '-i', str(stream_file),
-      '-c', 'copy', str(f"{stream_file}.{UPLOAD_FORMAT}"),
+      '-c', 'copy', str(f"{timestamp}.{UPLOAD_FORMAT}"),
     ])
     p.wait()
   except Exception as e:
@@ -153,16 +154,16 @@ def convert(stream_file):
 
 
   if UPLOAD_ENABLED:
-    upload(stream_file)
+    upload(stream_file, timestamp)
   else:
     os.remove(stream_file)
 
-def upload(stream_file):
-  converted_file = f"{stream_file}.{UPLOAD_FORMAT}"
+def upload(stream_file, timestamp):
+  converted_file = f"{timestamp}.{UPLOAD_FORMAT}"
 
   with open(converted_file, 'rb') as f:
     try:
-      DBX.files_upload(f.read(), f"/hc_{today()}/{now()}.{UPLOAD_FORMAT}")
+      DBX.files_upload(f.read(), f"/hc_{today()}/{timestamp}.{UPLOAD_FORMAT}")
     except Exception as e:
       write(f"Dropbox upload error: {e}")
 
