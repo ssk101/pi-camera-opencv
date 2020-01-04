@@ -7,25 +7,36 @@ import io
 import os
 import sys
 import subprocess
+import configparser
 from picamera import PiCamera, Color
 from datetime import datetime, time as datetime_time
 from fractions import Fraction
 
-MAX_FILE_SIZE_MB = 8
-RESOLUTION = (1280, 720)
-FRAMERATE = 15
-ROTATION = 15
-QUALITY = 25
-BITRATE = 20000000
-TEXT_SIZE = 16
-TEXT_COLOR = '#fff'
-PROBE_SIZE = '16M'
-STREAM_FORMAT = 'h264'
-UPLOAD_FORMAT = 'mp4'
-DATE_FORMAT = '%Y-%m-%d'
-TIME_FORMAT = '%H.%M.%S'
-TIME_STATE = 'day'
-NIGHT_ENABLED = false
+config_parser = configparser.RawConfigParser()
+config_file = f"{os.path.dirname(os.path.realpath(sys.argv[0]))}/config"
+config_parser.read(config_file)
+db_config = config_parser['db_config']
+
+MAX_FILE_SIZE_MB = db_config.getint('max_file_size_mb', 8)
+RESOLUTION_X = db_config.getint('resolution_x', 1280)
+RESOLUTION_Y = db_config.getint('resolution_y', 720)
+FRAMERATE = db_config.getint('framerate', 15)
+SENSOR_MODE = db_config.getint('sensor_mode', 0)
+ROTATION = db_config.getint('rotation', 0)
+BRIGHTNESS = db_config.getint('brightness', 50)
+CONTRAST = db_config.getint('contrast', 0)
+QUALITY = db_config.getint('quality', 25)
+BITRATE = db_config.getint('bitrate', 20000000)
+TEXT_SIZE = db_config.getint('text_size', 16)
+TEXT_COLOR = db_config.get('text_color', '#fff')
+PROBE_SIZE = db_config.get('probe_size', '16M')
+STREAM_FORMAT = db_config.get('stream_format', 'h264')
+UPLOAD_FORMAT = db_config.get('upload_format', 'mp4')
+DATE_FORMAT = db_config.get('date_format', '%Y-%m-%d')
+TIME_FORMAT = db_config.get('time_format', '%H.%M.%S')
+NIGHT_ENABLED = db_config.getboolean('night_enabled', fallback=False)
+UPLOAD_ENABLED = db_config.getboolean('upload_enabled', fallback=True)
+TIME_STATE = db_config.get('time_state', 'day')
 ACCESS_TOKEN = os.environ.get('DB_ACCESS_TOKEN')
 CAMERA = PiCamera()
 
@@ -84,7 +95,9 @@ def init_camera(delay=0):
     'rotation': ROTATION,
     'annotate_text_size': TEXT_SIZE,
     'annotate_foreground': Color(TEXT_COLOR),
-    'resolution': RESOLUTION,
+    'resolution': (RESOLUTION_X, RESOLUTION_Y),
+    'brightness': BRIGHTNESS,
+    'contrast': CONTRAST,
   }
 
   day = {
@@ -119,29 +132,36 @@ def outputs():
   for i in itertools.count(1):
     yield io.open(f"{out_path()}/stream{i}.{STREAM_FORMAT}", 'wb')
 
-def upload(stream_file):
-  converted_file = f"{stream_file}.{UPLOAD_FORMAT}"
-  up_file = f"/hc_{today()}/{now()}.{UPLOAD_FORMAT}"
-
+def convert(stream_file):
   write(f"Converting {stream_file} to {UPLOAD_FORMAT}...")
 
   try:
     p = subprocess.Popen([
       'ffmpeg',
+      '-y',
       '-hide_banner',
       '-loglevel', 'panic',
       '-framerate', str(FRAMERATE),
       '-probesize', str(PROBE_SIZE),
       '-i', str(stream_file),
-      '-c', 'copy', str(converted_file),
+      '-c', 'copy', str(f"{stream_file}.{UPLOAD_FORMAT}"),
     ])
     p.wait()
   except Exception as e:
     return write(f"ffmpeg error: {e}")
 
+
+  if UPLOAD_ENABLED:
+    upload(stream_file)
+  else:
+    os.remove(stream_file)
+
+def upload(stream_file):
+  converted_file = f"{stream_file}.{UPLOAD_FORMAT}"
+
   with open(converted_file, 'rb') as f:
     try:
-      DBX.files_upload(f.read(), up_file)
+      DBX.files_upload(f.read(), f"/hc_{today()}/{now()}.{UPLOAD_FORMAT}")
     except Exception as e:
       write(f"Dropbox upload error: {e}")
 
@@ -168,7 +188,7 @@ def record():
         return init_camera(10)
 
     if output.tell() >= max_bytes:
-      upload(output.name)
+      convert(output.name)
 
 def main():
   init_camera()
