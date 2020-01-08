@@ -1,6 +1,6 @@
 # dbcam
 
-Records h264 streams from your Pi camera, converts and uploads to your Dropbox app folder.
+Records h264 streams (or captures stills for motion detection mode) from your Pi camera and uploads to your Dropbox.
 
 You must create an app via the Dropbox dev console here, and generate a token:
 
