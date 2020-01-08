@@ -119,6 +119,7 @@ def init_camera(delay=5):
   if MODE == 'motion':
     img_resolution = tuple([RESOLUTION_X, RESOLUTION_Y])
     CAMERA.resolution = img_resolution
+    CAMERA.rotation = ROTATION
     RAW_CAPTURE = PiRGBArray(CAMERA, size=img_resolution)
     return record_motion()
   else:
