@@ -226,13 +226,13 @@ def record_motion():
   for f in CAMERA.capture_continuous(
     RAW_CAPTURE,
     format="bgr",
-    use_video_port=True
+    use_video_port=False
   ):
     frame = f.array
     raw_timestamp = datetime.now()
     text = "Unoccupied"
 
-    frame = imutils.resize(frame, width=500)
+    frame = imutils.resize(frame, width=RESOLUTION_X)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, (21, 21), 0)
 
@@ -261,10 +261,10 @@ def record_motion():
       text = "Occupied"
 
     ts = now()
-    cv2.putText(frame, "Room Status: {}".format(text), (10, 20),
-      cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+    cv2.putText(frame, "Room Status: {}".format(text), (10, 25),
+      cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 3)
     cv2.putText(frame, ts, (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
-      0.35, (0, 0, 255), 1)
+      1, (255, 255, 255), 2)
 
     if text == "Occupied":
       if (raw_timestamp - lastUploaded).seconds >= MIN_UPLOAD_SECONDS:
