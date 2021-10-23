@@ -1,4 +1,4 @@
-# dbcam
+# Dropbox Pi Camera Uploader
 
 Records h264 streams (or captures stills for motion detection mode) from your Pi camera and uploads to your Dropbox.
 
