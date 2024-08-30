@@ -9,7 +9,7 @@ setup(
   packages=['dbcam'],
   install_requires=[
     'imutils',
-    'opencv-contrib-python==4.2.0.32',
+    'opencv-contrib-python==4.8.1.78',
     'pyautogui',
   ]
 )
